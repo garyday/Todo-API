@@ -13,9 +13,24 @@ app.get('/', function(req, res){
 	res.send('Todo API Root');
 });
 
-// GET /todos
+// GET /todos?completed=true
 app.get('/todos', function(req, res) { 
-	res.json(todos); 
+	var queryParams = req.query;
+	var filteredTodos = todos;
+	
+	if (queryParams && queryParams.completed === 'true') {
+		filteredTodos = _.where(filteredTodos, {completed: true});
+	} else if (queryParams && queryParams.completed === 'false') {
+		filteredTodos = _.where(filteredTodos, {completed: false});
+	} else {
+		if (!queryParams){
+			res.status(400).send('Incorrect data entered');
+		}
+	}
+
+
+
+	res.json(filteredTodos); 
 });
 
 //GET /todos/:id
