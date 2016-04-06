@@ -16,32 +16,82 @@ app.get('/', function(req, res) {
 
 // GET /todos?completed=true
 app.get('/todos', function(req, res) {
-	var queryParams = req.query;
-	var filteredTodos = todos;
+	var query = req.query;
+	var where = {};
 
-	if (queryParams && queryParams.completed === 'true') {
-		filteredTodos = _.where(filteredTodos, {
-			completed: true
-		});
-	} else if (queryParams && queryParams.completed === 'false') {
-		filteredTodos = _.where(filteredTodos, {
-			completed: false
-		});
-	} else {
-		if (!queryParams) {
-			res.status(400).send('Incorrect data entered');
-		}
+	if (query.hasOwnProperty('completed') && query.completed === 'true') {
+		where.completed = true;
+	} else if (query.hasOwnProperty('completed') && query.completed === 'false') {
+		where.completed = false;
 	}
 
-	if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-		filteredTodos = _.filter(filteredTodos, function(todo) {
-			return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-		});
+	if (query.hasOwnProperty('q') && query.q.length > 0) {
+		where.description = {
+			$like: '%' + query.q + '%'
+		};
 	}
 
+	db.todo.findAll({where: where}).then(function(todos){
+		res.json(todos);
+	}, function(e){
+		res.status(500).send();
+	});
 
 
-	res.json(filteredTodos);
+	// if (query.completed === 'true'){
+	// 	where.completed = true
+	// } else if (query.completed === 'false') {
+	// 	where.completed = false
+	// } 
+
+	// if (query.hasOwnProperty('q') && query.q.length > 0) {
+	// 	where.search = query.q
+	// }
+
+
+	// db.todo.findAll({
+	// 	where: {
+	// 		description: {
+	// 			$like: '%' + where.search + '%'
+	// 		},
+	// 		//completed: where.completed
+	// 	}
+	// }).then(function(todos){
+	// 	if(todos) {
+	// 		res.json(todos);
+	// 	} else {
+	// 		res.status(404).send('No data found');
+	// 	}
+	// }, function(e){
+	// 	res.status(500).json(e);
+	// });
+
+
+	// var filteredTodos = todos;
+
+	// if (queryParams && queryParams.completed === 'true') {
+	// 	filteredTodos = _.where(filteredTodos, {
+	// 		completed: true
+	// 	});
+	// } else if (queryParams && queryParams.completed === 'false') {
+	// 	filteredTodos = _.where(filteredTodos, {
+	// 		completed: false
+	// 	});
+	// } else {
+	// 	if (!queryParams) {
+	// 		res.status(400).send('Incorrect data entered');
+	// 	}
+	// }
+
+	// if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+	// 	filteredTodos = _.filter(filteredTodos, function(todo) {
+	// 		return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+	// 	});
+	// }
+
+
+
+	// res.json(filteredTodos);
 });
 
 //GET /todos/:id
