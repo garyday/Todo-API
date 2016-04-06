@@ -47,28 +47,27 @@ app.get('/todos', function(req, res) {
 //GET /todos/:id
 app.get('/todos/:id', function(req, res) {
 	var todoID = parseInt(req.params.id, 10);
-	var matchedTodo = _.findWhere(todos, {
-		id: todoID
+
+	db.todo.findById(todoID).then(function(todo) {
+		if (todo) {
+			res.json(todo.toJSON());
+		} else {
+			res.status(404).send('No data found with ID ' + todoID);
+		}
+	}, function(e){
+		res.status(500).json(e);
 	});
-
-	if (matchedTodo) {
-		res.json(matchedTodo);
-	} else {
-		res.status(404).send();
-	}
-
 });
 
 //POST /todos
 app.post('/todos', function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
 
-	db.todo.create(body).then(function(todo){
+	db.todo.create(body).then(function(todo) {
 		res.json(todo.toJSON());
 	}, function(e) {
 		res.status(400).json(e);
 	});
-
 
 
 
@@ -136,4 +135,3 @@ db.sequelize.sync().then(function() {
 		console.log('Express listening on port ' + PORT + '!');
 	});
 });
-
