@@ -89,57 +89,39 @@ app.delete('/todos/:id', function(req, res) {
 		} else {
 			res.status(204).send();
 		}
-	}, function(){
+	}, function() {
 		res.status(500).send();
 	});
-
-
-	// var matchedTodo = _.findWhere(todos, {
-	// 	id: todoID
-	// });
-	// if (matchedTodo) {
-	// 	todos = _.without(todos, matchedTodo);
-	// } else {
-	// 	return res.status(404).json({
-	// 		"error": "No todo found with that ID!"
-	// 	});
-	// }
-	// res.json(todos);
-
 });
 
 //PUT (Update) /todos/:id
 app.put('/todos/:id', function(req, res) {
 	var todoID = parseInt(req.params.id, 10);
-	var matchedTodo = _.findWhere(todos, {
-		id: todoID
-	});
+
 	var body = _.pick(req.body, 'description', 'completed');
-	var validAttributes = {};
+	var attributes = {};
 
-	if (!matchedTodo) {
-		return res.status(404).send();
+	if (body.hasOwnProperty('completed')) {
+		attributes.completed = body.completed;
 	}
 
-	if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-		validAttributes.completed = body.completed;
-	} else if (body.hasOwnProperty('completed')) {
-		return res.status(400).send();
-	} else {
-		//Never provided attribute
+	if (body.hasOwnProperty('description')) {
+		attributes.description = body.description;
 	}
 
-	if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
-		validAttributes.description = body.description;
-	} else if (body.hasOwnProperty('description')) {
-		return res.status(400).send();
-	} else {
-		//Never provided attribute
-	}
-
-	//Update
-	_.extend(matchedTodo, validAttributes);
-	res.json(matchedTodo);
+	db.todo.findById(todoID).then(function(todo) {
+		if (todo) {
+			todo.update(attributes).then(function(todo) {
+				res.json(todo.toJSON());
+			}, function(e) {
+				res.stauts(400).json(e);
+			});
+		} else {
+			res.status(404).send();
+		}
+	}, function() {
+		res.status(500).send();
+	})
 
 });
 
