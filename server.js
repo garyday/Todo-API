@@ -144,13 +144,13 @@ app.post('/users/login', function(req, res) {
 
 	db.user.authenticate(body).then(function(user) {
 		console.log(user);
-		res.json(user.toPublicJSON());
+		res.header('Auth', user.generateToken('authentication')).json(user.toPublicJSON());
 	}, function(e) {
 		res.status(401).send();
 	});
 });
 
-db.sequelize.sync({force:true}).then(function() {
+db.sequelize.sync().then(function() {
 	app.listen(PORT, function() {
 		console.log('Express listening on port ' + PORT + '!');
 	});
